@@ -1,5 +1,6 @@
 package com.veganfood.veganfoodbackend.controller;
 
+import com.veganfood.veganfoodbackend.dto.CreateUserRequest;
 import com.veganfood.veganfoodbackend.dto.UserDTO;
 import com.veganfood.veganfoodbackend.model.User;
 import com.veganfood.veganfoodbackend.service.UserService;
@@ -22,7 +23,15 @@ public class UserController {
     }
 
     @PostMapping
-    public User createUser(@RequestBody User user) {
+    public User createUser(@RequestBody CreateUserRequest req) {
+        User user = new User();
+        user.setName(req.getName());
+        user.setEmail(req.getEmail());
+        user.setPassword(req.getPassword());
+        user.setRole(req.getRole());
+        user.setPhoneNumber(req.getPhoneNumber());
+        user.setGoogleId(req.getGoogleId());
+        user.setAddress(req.getAddress());
         return userService.createUser(user);
     }
 }

@@ -24,6 +24,7 @@ public class UserService {
     }
 
     public User createUser(User user) {
+        user.setUserId(null); // Đảm bảo luôn là null khi tạo mới
         return userRepository.save(user);
     }
 }
