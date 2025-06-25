@@ -1,5 +1,6 @@
 package com.veganfood.veganfoodbackend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -10,32 +11,42 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer user_id;
+    @Column(name = "user_id")  // ánh xạ cột DB
+    private Integer userId;      // camelCase theo chuẩn Java
 
     private String name;
     private String email;
+
+    @JsonIgnore
     private String password;
 
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    private String phone_number;
-    private LocalDateTime created_at;
-    private String google_id;
+    private String phoneNumber;
+
+    private LocalDateTime createdAt;
+
+    private String googleId;
+
     private String address;
 
-    // Enum cho vai trò người dùng
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
+
     public enum Role {
         owner, staff, customer, manager
     }
 
     // Getters and Setters
-    public Integer getUser_id() {
-        return user_id;
+    public Integer getUserId() {
+        return userId;
     }
 
-    public void setUser_id(Integer user_id) {
-        this.user_id = user_id;
+    public void setUserId(Integer userId) {
+        this.userId = userId;
     }
 
     public String getName() {
@@ -70,28 +81,28 @@ public class User {
         this.role = role;
     }
 
-    public String getPhone_number() {
-        return phone_number;
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
 
-    public void setPhone_number(String phone_number) {
-        this.phone_number = phone_number;
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
-    public LocalDateTime getCreated_at() {
-        return created_at;
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
-    public void setCreated_at(LocalDateTime created_at) {
-        this.created_at = created_at;
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 
-    public String getGoogle_id() {
-        return google_id;
+    public String getGoogleId() {
+        return googleId;
     }
 
-    public void setGoogle_id(String google_id) {
-        this.google_id = google_id;
+    public void setGoogleId(String googleId) {
+        this.googleId = googleId;
     }
 
     public String getAddress() {
