@@ -22,7 +22,7 @@ public class CartItemService {
     public List<CartItem> getCartItemsByUserId(Integer userId) {
         Cart cart = cartRepository.findByUserUserId(userId)
                 .orElseThrow(() -> new RuntimeException("Cart not found"));
-        return cartItemRepository.findByCart(cart);
+        return cartItemRepository.findByCart_CartId(cart.getCartId());
     }
 
     public CartItem addProductToCart(Integer userId, Integer productId, int quantity) {

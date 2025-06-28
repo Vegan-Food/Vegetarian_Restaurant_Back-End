@@ -8,8 +8,10 @@ public class CartItemDTO {
     private Integer cartId;
     private Integer productId;
     private String productName;
+    private String imageUrl;
     private Double productPrice;
     private Integer quantity;
+    private Double totalPrice;
 
     public CartItemDTO() {
     }
@@ -17,12 +19,16 @@ public class CartItemDTO {
     public CartItemDTO(CartItem cartItem) {
         this.cartItemId = cartItem.getCartItemId();
         this.cartId = cartItem.getCart().getCartId();
+
         Product product = cartItem.getProduct();
         if (product != null) {
             this.productId = product.getProduct_id();
             this.productName = product.getName();
             this.productPrice = product.getPrice();
+            this.imageUrl = product.getImage_url();
+            this.totalPrice = product.getPrice() * cartItem.getQuantity();
         }
+
         this.quantity = cartItem.getQuantity();
     }
 
@@ -58,6 +64,14 @@ public class CartItemDTO {
         this.productName = productName;
     }
 
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
     public Double getProductPrice() {
         return productPrice;
     }
@@ -72,5 +86,13 @@ public class CartItemDTO {
 
     public void setQuantity(Integer quantity) {
         this.quantity = quantity;
+    }
+
+    public Double getTotalPrice() {
+        return totalPrice;
+    }
+
+    public void setTotalPrice(Double totalPrice) {
+        this.totalPrice = totalPrice;
     }
 }

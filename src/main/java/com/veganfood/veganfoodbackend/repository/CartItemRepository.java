@@ -9,7 +9,11 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CartItemRepository extends JpaRepository<CartItem, Integer> {
-    Optional<CartItem> findByCartAndProduct(Cart cart, Product product); // Thêm dòng này
-    List<CartItem> findByCart(Cart cart); // Có thể dùng nếu cần lấy tất cả sản phẩm trong cart
-    void deleteByCart(Cart cart); // Nếu muốn xóa toàn bộ item trong cart
+
+    // ✅ Sử dụng method name query chuẩn của Spring Data JPA
+    List<CartItem> findByCart_CartId(Integer cartId);
+
+    Optional<CartItem> findByCartAndProduct(Cart cart, Product product);
+
+    void deleteByCart(Cart cart);
 }
