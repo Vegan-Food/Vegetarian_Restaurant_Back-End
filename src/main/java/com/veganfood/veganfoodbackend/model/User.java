@@ -11,8 +11,8 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_id")  // ánh xạ cột DB
-    private Integer userId;      // camelCase theo chuẩn Java
+    @Column(name = "user_id")
+    private Integer userId;
 
     private String name;
     private String email;
@@ -28,6 +28,9 @@ public class User {
     private LocalDateTime createdAt;
 
     private String googleId;
+
+    @Column(name = "google_token")
+    private String googleToken;  // ✅ Thêm thuộc tính này
 
     private String address;
 
@@ -103,6 +106,14 @@ public class User {
 
     public void setGoogleId(String googleId) {
         this.googleId = googleId;
+    }
+
+    public String getGoogleToken() {
+        return googleToken;
+    }
+
+    public void setGoogleToken(String googleToken) {
+        this.googleToken = googleToken;
     }
 
     public String getAddress() {

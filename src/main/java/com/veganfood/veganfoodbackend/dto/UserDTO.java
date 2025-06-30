@@ -11,6 +11,7 @@ public class UserDTO {
     private String phoneNumber;
     private LocalDateTime createdAt;
     private String googleId;
+    private String googleToken; // ✅ Thêm dòng này
     private String address;
 
     public UserDTO() {
@@ -25,6 +26,7 @@ public class UserDTO {
         this.phoneNumber = user.getPhoneNumber();
         this.createdAt = user.getCreatedAt();
         this.googleId = user.getGoogleId();
+        this.googleToken = user.getGoogleToken(); // ✅ Lấy từ entity
         this.address = user.getAddress();
     }
 
@@ -36,5 +38,6 @@ public class UserDTO {
     public String getPhoneNumber() { return phoneNumber; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public String getGoogleId() { return googleId; }
+    public String getGoogleToken() { return googleToken; } // ✅ Getter mới
     public String getAddress() { return address; }
 }

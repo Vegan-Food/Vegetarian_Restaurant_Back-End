@@ -3,6 +3,7 @@ package com.veganfood.veganfoodbackend.service;
 import com.veganfood.veganfoodbackend.dto.UserDTO;
 import com.veganfood.veganfoodbackend.model.User;
 import com.veganfood.veganfoodbackend.repository.UserRepository;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,5 +26,14 @@ public class UserService {
 
     public User createUser(User user) {
         return userRepository.save(user);
+    }
+
+    public List<User> getAllUsersRaw() {
+        return userRepository.findAll();
+    }
+
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
     }
 }
