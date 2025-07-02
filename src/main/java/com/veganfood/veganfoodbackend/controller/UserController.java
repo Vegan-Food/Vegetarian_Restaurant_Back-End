@@ -41,13 +41,13 @@ public class UserController {
                 ))
                 .toList();
     }
-
     @GetMapping("/customerprofile")
     public CustomerDTO getCustomerProfile(Authentication authentication) {
         String email = authentication.getName();
         User user = userService.getUserByEmail(email);
 
         return new CustomerDTO(
+                user.getEmail(),
                 user.getName(),
                 user.getPhoneNumber(),
                 user.getAddress()
