@@ -29,7 +29,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         final String authHeader = request.getHeader("Authorization");
-
         String jwt = null;
         String email = null;
 
@@ -56,10 +55,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    // ❗ Bỏ qua filter cho các đường dẫn không cần bảo vệ
+    // ✅ Bỏ qua filter cho các endpoint công khai
     @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-        String path = request.getServletPath();
-        return path.startsWith("/api/auth/") || path.startsWith("/swagger") || path.startsWith("/v3");
-    }
+protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+    String path = request.getRequestURI();
+    return path.startsWith("/api/auth/")
+            || path.startsWith("/swagger-ui")
+            || path.equals("/swagger-ui.html")
+            || path.startsWith("/v3/api-docs")
+            || path.startsWith("/swagger-resources")
+            || path.startsWith("/webjars")
+            || path.startsWith("/api/feedback/product/");
+}
 }
