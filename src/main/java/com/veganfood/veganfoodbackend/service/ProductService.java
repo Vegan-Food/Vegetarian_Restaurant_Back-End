@@ -6,7 +6,6 @@ import com.veganfood.veganfoodbackend.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -17,6 +16,7 @@ public class ProductService {
         this.productRepository = productRepository;
     }
 
+    // ✅ Lấy tất cả sản phẩm
     public List<ProductDTO> getAllProducts() {
         return productRepository.findAll()
                 .stream()
@@ -24,15 +24,27 @@ public class ProductService {
                 .collect(Collectors.toList());
     }
 
+    // ✅ Lấy sản phẩm theo category (không phân biệt hoa thường)
+    public List<ProductDTO> getProductsByCategory(String category) {
+        return productRepository.findByCategoryIgnoreCase(category).stream()
+                .map(ProductDTO::new)
+                .collect(Collectors.toList());
+    }
+
+    // ✅ Lấy 1 sản phẩm theo ID
+    public ProductDTO getProductById(Integer id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+        return new ProductDTO(product);
+    }
+
+    // ✅ Tạo sản phẩm mới
     public Product createProduct(Product product) {
         product.setTotal_order(0); // mặc định khi mới tạo
         return productRepository.save(product);
     }
 
-    public Optional<Product> getProductById(Integer id) {
-        return productRepository.findById(id);
-    }
-
+    // ✅ Cập nhật sản phẩm
     public Product updateProduct(Integer id, Product updated) {
         return productRepository.findById(id).map(p -> {
             p.setName(updated.getName());
@@ -45,6 +57,7 @@ public class ProductService {
         }).orElseThrow(() -> new RuntimeException("Product not found"));
     }
 
+    // ✅ Xoá sản phẩm
     public void deleteProduct(Integer id) {
         productRepository.deleteById(id);
     }
