@@ -8,6 +8,8 @@ import com.veganfood.veganfoodbackend.model.Product;
 import com.veganfood.veganfoodbackend.repository.FeedbackRepository;
 import com.veganfood.veganfoodbackend.repository.UserRepository;
 import com.veganfood.veganfoodbackend.repository.ProductRepository;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,10 +35,7 @@ public class FeedbackService {
 
     public List<FeedbackDTO> getFeedbackByProductId(Integer productId) {
         try {
-            System.out.println("Fetching feedback for product ID: " + productId);
             List<Feedback> feedbackList = feedbackRepository.findByProductId(productId);
-            System.out.println("Found " + feedbackList.size() + " feedback records");
-
             return feedbackList.stream()
                     .map(f -> {
                         String userName = "Anonymous";
@@ -56,48 +55,44 @@ public class FeedbackService {
                     })
                     .collect(Collectors.toList());
         } catch (Exception e) {
-            System.out.println("Error in getFeedbackByProductId: " + e.getMessage());
-            e.printStackTrace();
             throw new RuntimeException("Failed to get feedback for product " + productId, e);
         }
     }
 
-    // ✅ Tạo feedback mới
+    // ✅ Tạo feedback mới - Lấy user từ JWT token
     @Transactional
     public FeedbackDTO createFeedback(CreateFeedbackDTO createFeedbackDTO) {
         try {
-            // Validate user exists
-            User user = userRepository.findById(createFeedbackDTO.getUserId())
-                    .orElseThrow(() -> new RuntimeException("User not found with ID: " + createFeedbackDTO.getUserId()));
+            // ✅ Lấy username từ JWT token
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String email = authentication.getName(); // ✅ lấy email từ token
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
 
-            // Validate product exists
+
+            // ✅ Tìm product
             Product product = productRepository.findById(createFeedbackDTO.getProductId())
                     .orElseThrow(() -> new RuntimeException("Product not found with ID: " + createFeedbackDTO.getProductId()));
 
-            // Create new feedback
+            // ✅ Tạo feedback mới
             Feedback feedback = new Feedback();
             feedback.setUser(user);
             feedback.setProduct(product);
             feedback.setComment(createFeedbackDTO.getComment());
             feedback.setCreatedAt(LocalDateTime.now());
 
-            // Save feedback
             Feedback savedFeedback = feedbackRepository.save(feedback);
 
-            // Return DTO
             return new FeedbackDTO(
                     savedFeedback.getComment(),
                     savedFeedback.getUser().getName(),
                     savedFeedback.getCreatedAt()
             );
         } catch (Exception e) {
-            System.out.println("Error creating feedback: " + e.getMessage());
-            e.printStackTrace();
             throw new RuntimeException("Failed to create feedback", e);
         }
     }
 
-    // ✅ Lấy tất cả feedback
     public List<FeedbackDTO> getAllFeedback() {
         try {
             List<Feedback> feedbackList = feedbackRepository.findAll();
@@ -120,7 +115,6 @@ public class FeedbackService {
                     })
                     .collect(Collectors.toList());
         } catch (Exception e) {
-            System.out.println("Error getting all feedback: " + e.getMessage());
             throw new RuntimeException("Failed to get all feedback", e);
         }
     }
@@ -133,7 +127,6 @@ public class FeedbackService {
             }
             feedbackRepository.deleteById(feedbackId);
         } catch (Exception e) {
-            System.out.println("Error deleting feedback: " + e.getMessage());
             throw new RuntimeException("Failed to delete feedback", e);
         }
     }
