@@ -96,7 +96,7 @@ public class UserController {
             UserDTO userDTO = new UserDTO(createdUser);
 
             return ResponseEntity.ok(Map.of(
-                    "message", "Tạo tài khoản thành công",
+                    "message", "Account created successfully",
                     "user", userDTO,
                     "createdBy", authentication.getName()
             ));
