@@ -30,21 +30,23 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                            "/api/auth/**",
-                            "/api/auth/encode",
-                            "/api/feedback/product/**",
-                            "/api/auth/debug-password",
-                            "/api/products/**",
-                            "/swagger-ui/**",
-                            "/swagger-ui.html",
-                            "/swagger-ui/index.html",
-                            "/v3/api-docs/**",
-                            "/swagger-resources/**",
-                            "/swagger-resources",
-                            "/swagger-resources/configuration/ui",
-                            "/swagger-resources/configuration/security",
-                            "/webjars/**"
+                                "/api/auth/**",
+                                "/api/auth/encode",
+                                "/api/feedback/product/**",
+                                "/api/auth/debug-password",
+                                "/api/products/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/swagger-ui/index.html",
+                                "/v3/api-docs/**",
+                                "/swagger-resources/**",
+                                "/swagger-resources",
+                                "/swagger-resources/configuration/ui",
+                                "/swagger-resources/configuration/security",
+                                "/webjars/**"
                         ).permitAll()
+                        // 🆕 Chỉ owner mới được tạo staff/manager
+                        .requestMatchers("/api/users/create-staff-manager").hasRole("owner")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
