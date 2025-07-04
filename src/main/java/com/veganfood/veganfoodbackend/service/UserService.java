@@ -4,6 +4,7 @@ import com.veganfood.veganfoodbackend.dto.UserDTO;
 import com.veganfood.veganfoodbackend.model.User;
 import com.veganfood.veganfoodbackend.repository.UserRepository;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,9 +13,11 @@ import java.util.stream.Collectors;
 @Service
 public class UserService {
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public List<UserDTO> getAllUsers() {
@@ -35,5 +38,23 @@ public class UserService {
     public User getUserByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+    }
+
+    // 🆕 Kiểm tra email đã tồn tại
+    public boolean isEmailExists(String email) {
+        return userRepository.findByEmail(email).isPresent();
+    }
+
+    // 🆕 Tạo tài khoản staff/manager
+    public User createStaffManager(User user) {
+        // Mã hóa mật khẩu
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        // Đảm bảo chỉ tạo được staff hoặc manager
+        if (user.getRole() != User.Role.staff && user.getRole() != User.Role.manager) {
+            throw new IllegalArgumentException("Chỉ có thể tạo tài khoản với role staff hoặc manager");
+        }
+
+        return userRepository.save(user);
     }
 }
