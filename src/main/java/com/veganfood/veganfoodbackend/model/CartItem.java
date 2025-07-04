@@ -1,9 +1,10 @@
 package com.veganfood.veganfoodbackend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "cartitem") // Phải đúng tên bảng thực tế trong MySQL
+@Table(name = "cartitem")
 public class CartItem {
 
     @Id
@@ -12,6 +13,7 @@ public class CartItem {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "cart_id", nullable = false)
+    @JsonIgnore // 🔥 Ngăn chặn circular reference
     private Cart cart;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

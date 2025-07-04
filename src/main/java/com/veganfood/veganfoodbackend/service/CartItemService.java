@@ -1,11 +1,13 @@
 package com.veganfood.veganfoodbackend.service;
 
+import com.veganfood.veganfoodbackend.dto.CartItemDTO;
 import com.veganfood.veganfoodbackend.model.*;
 import com.veganfood.veganfoodbackend.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class CartItemService {
@@ -23,6 +25,14 @@ public class CartItemService {
         Cart cart = cartRepository.findByUserUserId(userId)
                 .orElseThrow(() -> new RuntimeException("Cart not found"));
         return cartItemRepository.findByCart_CartId(cart.getCartId());
+    }
+
+    // 🔥 Thêm method trả về DTO
+    public List<CartItemDTO> getCartItemsDTOByUserId(Integer userId) {
+        List<CartItem> cartItems = getCartItemsByUserId(userId);
+        return cartItems.stream()
+                .map(CartItemDTO::new)
+                .collect(Collectors.toList());
     }
 
     public CartItem addProductToCart(Integer userId, Integer productId, int quantity) {

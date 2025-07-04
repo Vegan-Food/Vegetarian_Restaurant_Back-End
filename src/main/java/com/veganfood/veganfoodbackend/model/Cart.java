@@ -1,5 +1,6 @@
 package com.veganfood.veganfoodbackend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.util.List;
 
@@ -15,8 +16,8 @@ public class Cart {
     @JoinColumn(name = "user_id", referencedColumnName = "user_id")
     private User user;
 
-    // Thêm quan hệ với CartItem
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore // 🔥 Ngăn chặn circular reference
     private List<CartItem> items;
 
     public Cart() {
