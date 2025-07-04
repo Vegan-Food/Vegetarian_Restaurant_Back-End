@@ -1,8 +1,10 @@
 package com.veganfood.veganfoodbackend.controller;
 
 import com.veganfood.veganfoodbackend.model.CartItem;
+import com.veganfood.veganfoodbackend.model.User;
 import com.veganfood.veganfoodbackend.service.CartItemService;
 import com.veganfood.veganfoodbackend.service.CartService;
+import com.veganfood.veganfoodbackend.util.AuthUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,31 +20,36 @@ public class CartItemController {
     @Autowired
     private CartService cartService;
 
-    @PostMapping("/{userId}/add")
+    @Autowired
+    private AuthUtil authUtil;
+
+    @PostMapping("/add")
     public CartItem addItemToCart(
-            @PathVariable Integer userId,
             @RequestParam Integer productId,
             @RequestParam Integer quantity
     ) {
+        User currentUser = authUtil.getCurrentUser();
+        Integer userId = currentUser.getUserId();
+
         cartService.getOrCreateCartByUserId(userId); // đảm bảo cart tồn tại
         return cartItemService.addProductToCart(userId, productId, quantity);
     }
 
-    @GetMapping("/{userId}")
-    public List<CartItem> getCartItems(@PathVariable Integer userId) {
-        return cartItemService.getCartItemsByUserId(userId);
+    @GetMapping
+    public List<CartItem> getCartItems() {
+        User currentUser = authUtil.getCurrentUser();
+        return cartItemService.getCartItemsByUserId(currentUser.getUserId());
     }
 
-    @DeleteMapping("/{userId}/remove")
-    public void removeItemFromCart(
-            @PathVariable Integer userId,
-            @RequestParam Integer productId
-    ) {
-        cartItemService.removeProductFromCart(userId, productId);
+    @DeleteMapping("/remove")
+    public void removeItemFromCart(@RequestParam Integer productId) {
+        User currentUser = authUtil.getCurrentUser();
+        cartItemService.removeProductFromCart(currentUser.getUserId(), productId);
     }
 
-    @DeleteMapping("/{userId}/clear")
-    public void clearCart(@PathVariable Integer userId) {
-        cartItemService.clearCart(userId);
+    @DeleteMapping("/clear")
+    public void clearCart() {
+        User currentUser = authUtil.getCurrentUser();
+        cartItemService.clearCart(currentUser.getUserId());
     }
 }

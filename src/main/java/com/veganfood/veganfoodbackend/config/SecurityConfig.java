@@ -45,7 +45,9 @@ public class SecurityConfig {
                                 "/swagger-resources/configuration/security",
                                 "/webjars/**"
                         ).permitAll()
-                        // 🆕 Chỉ owner mới được tạo staff/manager
+                        // Cart APIs yêu cầu authentication
+                        .requestMatchers("/api/cart/**").authenticated()
+                        // Owner role restriction
                         .requestMatchers("/api/users/create-staff-manager").hasRole("owner")
                         .anyRequest().authenticated()
                 )
@@ -58,10 +60,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("*")); // Cho phép tất cả origin
+        configuration.setAllowedOrigins(Arrays.asList("*"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setAllowCredentials(false); // Để test, không gửi cookie
+        configuration.setAllowCredentials(false);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
