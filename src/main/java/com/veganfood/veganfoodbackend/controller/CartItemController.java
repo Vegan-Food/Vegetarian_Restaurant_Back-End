@@ -1,5 +1,6 @@
 package com.veganfood.veganfoodbackend.controller;
 
+import com.veganfood.veganfoodbackend.dto.CartItemDTO;
 import com.veganfood.veganfoodbackend.model.CartItem;
 import com.veganfood.veganfoodbackend.model.User;
 import com.veganfood.veganfoodbackend.service.CartItemService;
@@ -35,10 +36,11 @@ public class CartItemController {
         return cartItemService.addProductToCart(userId, productId, quantity);
     }
 
+    // ✅ Đã chỉnh: trả về DTO
     @GetMapping
-    public List<CartItem> getCartItems() {
+    public List<CartItemDTO> getCartItems() {
         User currentUser = authUtil.getCurrentUser();
-        return cartItemService.getCartItemsByUserId(currentUser.getUserId());
+        return cartItemService.getCartItemsDTOByUserId(currentUser.getUserId());
     }
 
     @DeleteMapping("/remove")
@@ -51,5 +53,15 @@ public class CartItemController {
     public void clearCart() {
         User currentUser = authUtil.getCurrentUser();
         cartItemService.clearCart(currentUser.getUserId());
+    }
+
+    @PutMapping("/update")
+    public CartItemDTO updateItemQuantity(
+            @RequestParam Integer productId,
+            @RequestParam Integer quantity
+    ) {
+        User currentUser = authUtil.getCurrentUser();
+        CartItem updatedItem = cartItemService.updateProductQuantity(currentUser.getUserId(), productId, quantity);
+        return updatedItem != null ? new CartItemDTO(updatedItem) : null;
     }
 }
