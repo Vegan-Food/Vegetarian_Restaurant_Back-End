@@ -1,8 +1,9 @@
 package com.veganfood.veganfoodbackend.controller;
 
-import com.veganfood.veganfoodbackend.dto.CustomerDTO;
+import com.veganfood.veganfoodbackend.dto.UpdateProfileDTO;
 import com.veganfood.veganfoodbackend.dto.UserDTO;
 import com.veganfood.veganfoodbackend.dto.UserPublicDTO;
+import com.veganfood.veganfoodbackend.dto.ViewProfileDTO;
 import com.veganfood.veganfoodbackend.dto.request.CreateStaffManagerRequest;
 import com.veganfood.veganfoodbackend.model.User;
 import com.veganfood.veganfoodbackend.service.UserService;
@@ -45,18 +46,44 @@ public class UserController {
                 ))
                 .toList();
     }
-    @GetMapping("/customerprofile")
-    public CustomerDTO getCustomerProfile(Authentication authentication) {
+    @GetMapping("/viewprofile")
+    public ViewProfileDTO getCustomerProfile(Authentication authentication) {
         String email = authentication.getName();
         User user = userService.getUserByEmail(email);
 
-        return new CustomerDTO(
+        return new ViewProfileDTO(
                 user.getEmail(),
                 user.getName(),
                 user.getPhoneNumber(),
-                user.getAddress()
+                user.getAddress(),
+                user.getDateOfBirth(),
+                user.getGender()
         );
     }
+
+    @PostMapping("/viewprofile/update")
+    public ViewProfileDTO updateProfile(@RequestBody UpdateProfileDTO dto, Authentication authentication) {
+        String email = authentication.getName();
+        User user = userService.getUserByEmail(email);
+
+        user.setName(dto.getName());
+        user.setPhoneNumber(dto.getPhoneNumber());
+        user.setAddress(dto.getAddress());
+        user.setDateOfBirth(dto.getDateOfBirth());
+        user.setGender(dto.getGender());
+
+        userService.save(user); // Cần có hàm save trong service
+
+        return new ViewProfileDTO(
+                user.getEmail(),
+                user.getName(),
+                user.getPhoneNumber(),
+                user.getAddress(),
+                user.getDateOfBirth(),
+                user.getGender()
+        );
+    }
+
 
     // ✅ Tạo user mới (public API)
     @PostMapping

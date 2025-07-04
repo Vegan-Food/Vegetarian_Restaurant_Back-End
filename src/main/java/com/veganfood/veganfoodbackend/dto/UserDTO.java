@@ -1,6 +1,8 @@
 package com.veganfood.veganfoodbackend.dto;
 
 import com.veganfood.veganfoodbackend.model.User;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class UserDTO {
@@ -10,9 +12,9 @@ public class UserDTO {
     private User.Role role;
     private String phoneNumber;
     private LocalDateTime createdAt;
-    private String googleId;
-    private String googleToken; // ✅ Thêm dòng này
     private String address;
+    private LocalDate dateOfBirth;
+    private String gender;
 
     public UserDTO() {
         // Bắt buộc để Jackson khởi tạo
@@ -25,9 +27,9 @@ public class UserDTO {
         this.role = user.getRole();
         this.phoneNumber = user.getPhoneNumber();
         this.createdAt = user.getCreatedAt();
-        this.googleId = user.getGoogleId();
-        this.googleToken = user.getGoogleToken(); // ✅ Lấy từ entity
         this.address = user.getAddress();
+        this.dateOfBirth = user.getDateOfBirth();
+        this.gender = user.getGender();
     }
 
     // Getters
@@ -37,7 +39,7 @@ public class UserDTO {
     public User.Role getRole() { return role; }
     public String getPhoneNumber() { return phoneNumber; }
     public LocalDateTime getCreatedAt() { return createdAt; }
-    public String getGoogleId() { return googleId; }
-    public String getGoogleToken() { return googleToken; } // ✅ Getter mới
     public String getAddress() { return address; }
+    public LocalDate getDateOfBirth() { return dateOfBirth; }
+    public String getGender() { return gender; }
 }
