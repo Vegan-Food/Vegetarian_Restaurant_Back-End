@@ -57,7 +57,8 @@ public class UserController {
                 user.getPhoneNumber(),
                 user.getAddress(),
                 user.getDateOfBirth(),
-                user.getGender()
+                user.getGender(),
+                user.getCreatedAt()
         );
     }
 
@@ -80,7 +81,8 @@ public class UserController {
                 user.getPhoneNumber(),
                 user.getAddress(),
                 user.getDateOfBirth(),
-                user.getGender()
+                user.getGender(),
+                user.getCreatedAt()
         );
     }
 
