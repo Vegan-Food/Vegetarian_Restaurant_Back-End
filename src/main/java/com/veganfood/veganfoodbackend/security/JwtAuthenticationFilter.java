@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -32,39 +33,66 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String jwt = null;
         String email = null;
 
+        System.out.println("🔍 Processing request: " + request.getRequestURI());
+        System.out.println("🔍 Authorization header: " + authHeader);
+
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             jwt = authHeader.substring(7);
-            email = jwtService.extractEmail(jwt);
+            try {
+                email = jwtService.extractEmail(jwt);
+                System.out.println("✅ Extracted email: " + email);
+            } catch (Exception e) {
+                System.out.println("❌ Failed to extract email from token: " + e.getMessage());
+                filterChain.doFilter(request, response);
+                return;
+            }
         }
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            var userDetails = userDetailsService.loadUserByUsername(email);
+            try {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+                System.out.println("✅ UserDetails loaded: " + userDetails.getUsername());
+                System.out.println("✅ Authorities: " + userDetails.getAuthorities());
 
-            if (jwtService.validateToken(jwt)) {
-                var authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities()
-                );
-                authToken.setDetails(
-                        new WebAuthenticationDetailsSource().buildDetails(request)
-                );
+                // ✅ Validate token with user details
+                if (jwtService.validateToken(jwt, userDetails)) {
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities()
+                    );
+                    authToken.setDetails(
+                            new WebAuthenticationDetailsSource().buildDetails(request)
+                    );
 
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                    System.out.println("✅ Authentication set in context for: " + userDetails.getUsername());
+                    System.out.println("✅ Current authorities: " + SecurityContextHolder.getContext().getAuthentication().getAuthorities());
+                } else {
+                    System.out.println("❌ Token validation failed");
+                }
+            } catch (Exception e) {
+                System.out.println("❌ Error loading user details: " + e.getMessage());
             }
         }
 
         filterChain.doFilter(request, response);
     }
 
-    // ✅ Bỏ qua filter cho các endpoint công khai
     @Override
-protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-    String path = request.getRequestURI();
-    return path.startsWith("/api/auth/")
-            || path.startsWith("/swagger-ui")
-            || path.equals("/swagger-ui.html")
-            || path.startsWith("/v3/api-docs")
-            || path.startsWith("/swagger-resources")
-            || path.startsWith("/webjars")
-            || path.startsWith("/api/feedback/product/");
-}
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getRequestURI();
+        boolean shouldNotFilter = path.startsWith("/api/auth/")
+                || path.startsWith("/swagger-ui")
+                || path.equals("/swagger-ui.html")
+                || path.startsWith("/v3/api-docs")
+                || path.startsWith("/swagger-resources")
+                || path.startsWith("/webjars")
+                || path.startsWith("/api/feedback/product/")
+                || path.startsWith("/api/products/");
+
+        if (shouldNotFilter) {
+            System.out.println("⏭️ Skipping JWT filter for: " + path);
+        }
+
+        return shouldNotFilter;
+    }
 }

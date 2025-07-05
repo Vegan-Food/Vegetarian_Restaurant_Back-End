@@ -2,6 +2,7 @@ package com.veganfood.veganfoodbackend.config;
 
 import com.veganfood.veganfoodbackend.security.JwtAuthenticationFilter;
 import com.veganfood.veganfoodbackend.security.CustomUserDetailsService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.*;
 import org.springframework.security.authentication.*;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -45,15 +46,28 @@ public class SecurityConfig {
                                 "/swagger-resources/configuration/security",
                                 "/webjars/**"
                         ).permitAll()
-                        // Cart APIs yêu cầu authentication
+
+                        .requestMatchers("/api/users/create-staff-manager").hasRole("OWNER")
                         .requestMatchers("/api/cart/**").authenticated()
-                        // Owner role restriction
-                        .requestMatchers("/api/users/create-staff-manager").hasRole("owner")
+                        // ✅ Đảm bảo cả hai pattern được cover
+                        .requestMatchers("/api/order/**").authenticated()
+                        .requestMatchers("/api/order").authenticated()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .userDetailsService(uds)
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                // ✅ Thêm exception handling
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            System.out.println("❌ Authentication failed: " + authException.getMessage());
+                            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication failed");
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            System.out.println("❌ Access denied: " + accessDeniedException.getMessage());
+                            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied");
+                        })
+                )
                 .build();
     }
 
