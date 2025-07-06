@@ -1,0 +1,170 @@
+package com.veganfood.veganfoodbackend.service;
+
+import com.veganfood.veganfoodbackend.dto.OrderDTO;
+import com.veganfood.veganfoodbackend.dto.OrderItemDTO;
+import com.veganfood.veganfoodbackend.dto.request.CheckoutRequest;
+import com.veganfood.veganfoodbackend.model.*;
+import com.veganfood.veganfoodbackend.repository.*;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+public class OrderService {
+
+    private final UserRepository userRepository;
+    private final CartRepository cartRepository;
+    private final CartItemRepository cartItemRepository;
+    private final DiscountRepository discountRepository;
+    private final OrderRepository orderRepository;
+    private final OrderItemRepository orderItemRepository;
+
+    public OrderService(UserRepository userRepository,
+                        CartRepository cartRepository,
+                        CartItemRepository cartItemRepository,
+                        DiscountRepository discountRepository,
+                        OrderRepository orderRepository,
+                        OrderItemRepository orderItemRepository) {
+        this.userRepository = userRepository;
+        this.cartRepository = cartRepository;
+        this.cartItemRepository = cartItemRepository;
+        this.discountRepository = discountRepository;
+        this.orderRepository = orderRepository;
+        this.orderItemRepository = orderItemRepository;
+    }
+
+    // ✅ API thanh toán (checkout)
+    public String checkout(CheckoutRequest request, java.security.Principal principal) {
+        String email = principal.getName();
+        return checkoutByEmail(request, email);
+    }
+
+    public String checkoutByEmail(CheckoutRequest request, String email) {
+        // 1. Lấy thông tin user từ JWT
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với email: " + email));
+
+        // 2. Tìm giỏ hàng của user
+        Cart cart = cartRepository.findByUserUserId(user.getUserId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy giỏ hàng"));
+
+        // 3. Lấy danh sách cart item
+        List<CartItem> cartItems = cartItemRepository.findByCart_CartId(cart.getCartId());
+        if (cartItems.isEmpty()) return "Giỏ hàng trống";
+
+        // 4. Tính tổng tiền
+        BigDecimal totalAmount = cartItems.stream()
+                .map(item -> BigDecimal.valueOf(item.getProduct().getPrice())
+                        .multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // 5. Tạo đơn hàng
+        Order order = new Order();
+        order.setUser(user);
+        order.setStatus(Order.OrderStatus.pending);
+        order.setPaymentMethod(Order.PaymentMethod.valueOf(request.getPaymentMethod().toUpperCase()));
+        order.setPhoneNumber(request.getPhoneNumber());
+        order.setAddress(request.getAddress());
+        order.setTotalAmount(totalAmount);
+
+        if (request.getDiscountId() != null) {
+            discountRepository.findById(request.getDiscountId()).ifPresent(order::setDiscount);
+        }
+
+        orderRepository.save(order);
+
+        // 6. Tạo từng OrderItem từ CartItem
+        for (CartItem item : cartItems) {
+            OrderItem orderItem = new OrderItem();
+            orderItem.setOrder(order);
+            orderItem.setProduct(item.getProduct());
+            orderItem.setUser(user);
+            orderItem.setQuantity(item.getQuantity());
+            orderItem.setPriceAtTime(BigDecimal.valueOf(item.getProduct().getPrice()));
+            orderItemRepository.save(orderItem);
+        }
+
+        // 7. Xoá hết cart item sau khi checkout
+        cartItemRepository.deleteAll(cartItems);
+
+        return "✅ Đặt hàng thành công. Mã đơn hàng: " + order.getOrderId();
+    }
+
+    // ❗ Đổi tên hàm này để tránh trùng với hàm bên dưới
+    public List<Order> getRawOrdersForUserOrAdmin(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+
+        String role = user.getRole().name();
+
+        if ("customer".equalsIgnoreCase(role)) {
+            return orderRepository.findByUser(user);
+        } else {
+            return orderRepository.findAll();
+        }
+    }
+
+    // ✅ Trả về danh sách đơn hàng dưới dạng DTO
+    public List<OrderDTO> getOrdersForUserOrAdmin(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+
+        List<Order> orders;
+        if ("customer".equalsIgnoreCase(user.getRole().name())) {
+            orders = orderRepository.findByUser(user);
+        } else {
+            orders = orderRepository.findAll();
+        }
+
+        return orders.stream().map(order -> {
+            OrderDTO dto = new OrderDTO();
+            dto.setOrderId(order.getOrderId());
+            dto.setUserName(order.getUser().getName());
+            dto.setStatus(order.getStatus().name());
+            dto.setPaymentMethod(order.getPaymentMethod().name());
+            dto.setTotalAmount(order.getTotalAmount());
+            dto.setPhoneNumber(order.getPhoneNumber());
+            dto.setAddress(order.getAddress());
+            dto.setCreatedAt(order.getCreatedAt());
+
+            List<OrderItemDTO> items = order.getOrderItems().stream().map(item -> {
+                OrderItemDTO itemDTO = new OrderItemDTO();
+                itemDTO.setProductName(item.getProduct().getName()); // force load product
+                itemDTO.setQuantity(item.getQuantity());
+                itemDTO.setPriceAtTime(item.getPriceAtTime());
+                return itemDTO;
+            }).collect(Collectors.toList());
+
+            dto.setItems(items);
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
+    public String deleteOrderById(Integer orderId, String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+
+        // Cho phép xoá nếu là chính chủ hoặc là admin
+        boolean isOwner = order.getUser().getUserId().equals(user.getUserId());
+        boolean isAdmin = !user.getRole().name().equalsIgnoreCase("customer");
+
+        if (!isOwner && !isAdmin) {
+            throw new RuntimeException("Bạn không có quyền xóa đơn hàng này");
+        }
+
+        // Xóa các order item trước (tránh lỗi khóa ngoại)
+        List<OrderItem> items = orderItemRepository.findByOrderOrderId(orderId);
+        orderItemRepository.deleteAll(items);
+
+        // Xóa đơn
+        orderRepository.delete(order);
+
+        return "✅ Đã xóa đơn hàng ID: " + orderId;
+    }
+
+}
