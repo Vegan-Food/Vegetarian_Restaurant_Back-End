@@ -49,9 +49,9 @@ public class SecurityConfig {
 
                         .requestMatchers("/api/users/create-staff-manager").hasRole("OWNER")
                         .requestMatchers("/api/cart/**").authenticated()
-                        // ✅ Đảm bảo cả hai pattern được cover
                         .requestMatchers("/api/order/**").authenticated()
                         .requestMatchers("/api/order").authenticated()
+                        .requestMatchers("/api/payment/create/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
