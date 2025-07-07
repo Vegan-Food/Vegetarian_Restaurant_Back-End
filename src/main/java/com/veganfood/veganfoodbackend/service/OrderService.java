@@ -167,4 +167,28 @@ public class OrderService {
         return "✅ Đã xóa đơn hàng ID: " + orderId;
     }
 
+    // ✅ Cập nhật trạng thái đơn hàng
+    public String updateOrderStatus(Integer orderId, Order.OrderStatus status, String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+
+        // Nếu là customer thì chỉ được cập nhật đơn của chính họ
+        boolean isCustomer = user.getRole().name().equalsIgnoreCase("customer");
+        boolean isOwner = order.getUser().getUserId().equals(user.getUserId());
+
+        if (isCustomer && !isOwner) {
+            throw new RuntimeException("❌ Bạn không có quyền cập nhật đơn hàng này");
+        }
+
+        order.setStatus(status);
+        orderRepository.save(order);
+
+        return "✅ Cập nhật trạng thái đơn hàng thành công: " + status.name();
+    }
+
+
+
 }
