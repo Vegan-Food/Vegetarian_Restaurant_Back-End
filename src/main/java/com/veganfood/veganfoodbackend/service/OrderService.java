@@ -42,40 +42,56 @@ public class OrderService {
     }
 
     public String checkoutByEmail(CheckoutRequest request, String email) {
-        // 1. Lấy thông tin user từ JWT
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với email: " + email));
 
-        // 2. Tìm giỏ hàng của user
         Cart cart = cartRepository.findByUserUserId(user.getUserId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy giỏ hàng"));
 
-        // 3. Lấy danh sách cart item
         List<CartItem> cartItems = cartItemRepository.findByCart_CartId(cart.getCartId());
         if (cartItems.isEmpty()) return "Giỏ hàng trống";
 
-        // 4. Tính tổng tiền
         BigDecimal totalAmount = cartItems.stream()
                 .map(item -> BigDecimal.valueOf(item.getProduct().getPrice())
                         .multiply(BigDecimal.valueOf(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // 5. Tạo đơn hàng
         Order order = new Order();
         order.setUser(user);
         order.setStatus(Order.OrderStatus.pending);
         order.setPaymentMethod(Order.PaymentMethod.valueOf(request.getPaymentMethod().toUpperCase()));
         order.setPhoneNumber(request.getPhoneNumber());
         order.setAddress(request.getAddress());
-        order.setTotalAmount(totalAmount);
 
-        if (request.getDiscountId() != null) {
-            discountRepository.findById(request.getDiscountId()).ifPresent(order::setDiscount);
+        // ✅ Áp dụng mã giảm giá nếu có
+        if (request.getDiscountCode() != null && !request.getDiscountCode().isBlank()) {
+            Discount discount = discountRepository.findByDiscountCode(request.getDiscountCode())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy mã giảm giá"));
+
+            if (discount.getStatus() != Discount.Status.Available || discount.getQuantity() <= 0) {
+                throw new RuntimeException("Mã giảm giá không còn khả dụng");
+            }
+
+            if (discount.getPercentage() > 0) {
+                BigDecimal discountAmount = totalAmount
+                        .multiply(BigDecimal.valueOf(discount.getPercentage()))
+                        .divide(BigDecimal.valueOf(100));
+                totalAmount = totalAmount.subtract(discountAmount);
+            }
+
+            discount.setQuantity(discount.getQuantity() - 1);
+            if (discount.getQuantity() == 0) {
+                discount.setStatus(Discount.Status.Unavailable);
+            }
+
+            discountRepository.save(discount);
+            order.setDiscount(discount);
         }
 
+
+        order.setTotalAmount(totalAmount);
         orderRepository.save(order);
 
-        // 6. Tạo từng OrderItem từ CartItem
         for (CartItem item : cartItems) {
             OrderItem orderItem = new OrderItem();
             orderItem.setOrder(order);
@@ -86,13 +102,11 @@ public class OrderService {
             orderItemRepository.save(orderItem);
         }
 
-        // 7. Xoá hết cart item sau khi checkout
         cartItemRepository.deleteAll(cartItems);
 
         return "✅ Đặt hàng thành công. Mã đơn hàng: " + order.getOrderId();
     }
 
-    // ❗ Đổi tên hàm này để tránh trùng với hàm bên dưới
     public List<Order> getRawOrdersForUserOrAdmin(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
@@ -106,7 +120,6 @@ public class OrderService {
         }
     }
 
-    // ✅ Trả về danh sách đơn hàng dưới dạng DTO
     public List<OrderDTO> getOrdersForUserOrAdmin(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
@@ -131,7 +144,7 @@ public class OrderService {
 
             List<OrderItemDTO> items = order.getOrderItems().stream().map(item -> {
                 OrderItemDTO itemDTO = new OrderItemDTO();
-                itemDTO.setProductName(item.getProduct().getName()); // force load product
+                itemDTO.setProductName(item.getProduct().getName());
                 itemDTO.setQuantity(item.getQuantity());
                 itemDTO.setPriceAtTime(item.getPriceAtTime());
                 return itemDTO;
@@ -149,7 +162,6 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
 
-        // Cho phép xoá nếu là chính chủ hoặc là admin
         boolean isOwner = order.getUser().getUserId().equals(user.getUserId());
         boolean isAdmin = !user.getRole().name().equalsIgnoreCase("customer");
 
@@ -157,17 +169,13 @@ public class OrderService {
             throw new RuntimeException("Bạn không có quyền xóa đơn hàng này");
         }
 
-        // Xóa các order item trước (tránh lỗi khóa ngoại)
         List<OrderItem> items = orderItemRepository.findByOrderOrderId(orderId);
         orderItemRepository.deleteAll(items);
-
-        // Xóa đơn
         orderRepository.delete(order);
 
         return "✅ Đã xóa đơn hàng ID: " + orderId;
     }
 
-    // ✅ Cập nhật trạng thái đơn hàng
     public String updateOrderStatus(Integer orderId, Order.OrderStatus status, String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
@@ -175,7 +183,6 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
 
-        // Nếu là customer thì chỉ được cập nhật đơn của chính họ
         boolean isCustomer = user.getRole().name().equalsIgnoreCase("customer");
         boolean isOwner = order.getUser().getUserId().equals(user.getUserId());
 
@@ -188,7 +195,4 @@ public class OrderService {
 
         return "✅ Cập nhật trạng thái đơn hàng thành công: " + status.name();
     }
-
-
-
 }

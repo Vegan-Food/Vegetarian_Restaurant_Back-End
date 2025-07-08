@@ -4,28 +4,28 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "Discount")
 public class Discount {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "discount_id")
     private Integer discountId;
 
-    @Column(name = "discount_code", nullable = false)
     private String discountCode;
 
-    @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @Enumerated(EnumType.STRING)
-    private DiscountStatus status;
+    private Status status;
 
     private Integer quantity;
 
-    public Discount() {}
+    private Integer percentage;
 
-    // Getters and Setters
+    public enum Status {
+        Available, Unavailable, time_expired
+    }
+
+    // === GETTERS & SETTERS ===
 
     public Integer getDiscountId() {
         return discountId;
@@ -51,11 +51,11 @@ public class Discount {
         this.createdAt = createdAt;
     }
 
-    public DiscountStatus getStatus() {
+    public Status getStatus() {
         return status;
     }
 
-    public void setStatus(DiscountStatus status) {
+    public void setStatus(Status status) {
         this.status = status;
     }
 
@@ -67,10 +67,11 @@ public class Discount {
         this.quantity = quantity;
     }
 
-    // Enum đặt bên trong luôn
-    public enum DiscountStatus {
-        Available,
-        Unavailable,
-        time_expired
+    public Integer getPercentage() {
+        return percentage;
+    }
+
+    public void setPercentage(Integer percentage) {
+        this.percentage = percentage;
     }
 }

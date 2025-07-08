@@ -63,7 +63,8 @@ CREATE TABLE Discount (
     discount_code VARCHAR(100),  
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,  
     status ENUM('Available', 'Unavailable', 'time_expired'),  
-    quantity INT  
+    quantity INT,
+    percentage INT NOT NULL CHECK (percentage >= 0 AND percentage <= 100)
 );
 
 -- 4. Order
