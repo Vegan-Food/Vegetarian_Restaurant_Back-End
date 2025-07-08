@@ -4,7 +4,7 @@ public class CheckoutRequest {
     private String paymentMethod;
     private String phoneNumber;
     private String address;
-    private Integer discountId; // optional
+    private String discountCode;
 
     public String getPaymentMethod() {
         return paymentMethod;
@@ -30,11 +30,11 @@ public class CheckoutRequest {
         this.address = address;
     }
 
-    public Integer getDiscountId() {
-        return discountId;
+    public String getDiscountCode() {
+        return discountCode;
     }
 
-    public void setDiscountId(Integer discountId) {
-        this.discountId = discountId;
+    public void setDiscountCode(String discountCode) {
+        this.discountCode = discountCode;
     }
 }

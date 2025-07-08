@@ -62,4 +62,22 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    public List<UserDTO> getUsersByRole(User.Role role) {
+        return userRepository.findAll()
+                .stream()
+                .filter(user -> user.getRole() == role)
+                .map(UserDTO::new)
+                .collect(Collectors.toList());
+    }
+
+    public List<UserDTO> getUsersByRoles(User.Role... roles) {
+        List<User.Role> roleList = List.of(roles);
+        return userRepository.findAll()
+                .stream()
+                .filter(user -> roleList.contains(user.getRole()))
+                .map(UserDTO::new)
+                .collect(Collectors.toList());
+    }
+
+
 }

@@ -135,4 +135,19 @@ public class UserController {
                     .body("Lỗi tạo tài khoản: " + e.getMessage());
         }
     }
+
+    //GET all customers
+    @GetMapping("/role/customers")
+    @PreAuthorize("hasAnyRole('ROLE_owner', 'ROLE_manager', 'ROLE_staff')")
+    public List<UserDTO> getCustomers() {
+        return userService.getUsersByRole(User.Role.customer);
+    }
+
+    // GET all staff and managers
+    @GetMapping("/role/staff-managers")
+    @PreAuthorize("hasRole('ROLE_owner')") // chỉ owner được quyền
+    public List<UserDTO> getStaffAndManagers() {
+        return userService.getUsersByRoles(User.Role.staff, User.Role.manager);
+    }
+
 }
