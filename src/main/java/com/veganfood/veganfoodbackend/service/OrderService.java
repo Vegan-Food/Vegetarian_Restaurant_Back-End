@@ -49,7 +49,7 @@ public class OrderService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy giỏ hàng"));
 
         List<CartItem> cartItems = cartItemRepository.findByCart_CartId(cart.getCartId());
-        if (cartItems.isEmpty()) return "Giỏ hàng trống";
+        if (cartItems.isEmpty()) return "[]";
 
         BigDecimal totalAmount = cartItems.stream()
                 .map(item -> BigDecimal.valueOf(item.getProduct().getPrice())
@@ -104,7 +104,7 @@ public class OrderService {
 
         cartItemRepository.deleteAll(cartItems);
 
-        return "✅ Đặt hàng thành công. Mã đơn hàng: " + order.getOrderId();
+        return "" + order.getOrderId();
     }
 
     public List<Order> getRawOrdersForUserOrAdmin(String email) {
