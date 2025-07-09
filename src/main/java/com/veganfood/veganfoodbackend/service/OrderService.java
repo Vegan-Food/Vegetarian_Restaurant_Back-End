@@ -193,7 +193,7 @@ public class OrderService {
         order.setStatus(status);
         orderRepository.save(order);
 
-        return "✅ Cập nhật trạng thái đơn hàng thành công: " + status.name();
+        return "success";
     }
 
     public OrderDTO getOrderByIdAndEmail(Integer orderId, String email) {
