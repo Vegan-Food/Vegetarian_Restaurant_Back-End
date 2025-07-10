@@ -47,7 +47,7 @@ public class SecurityConfig {
                                 "/webjars/**"
                         ).permitAll()
 
-                        .requestMatchers("/api/users/create-staff-manager").hasRole("OWNER")
+                        .requestMatchers("/api/users/create-staff-manager").hasRole("owner")
                         .requestMatchers("/api/cart/**").authenticated()
                         .requestMatchers("/api/order/**").authenticated()
                         .requestMatchers("/api/order").authenticated()
