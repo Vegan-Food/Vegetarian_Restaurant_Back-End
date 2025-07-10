@@ -195,4 +195,43 @@ public class OrderService {
 
         return "✅ Cập nhật trạng thái đơn hàng thành công: " + status.name();
     }
+
+    public OrderDTO getOrderByIdAndEmail(Integer orderId, String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+
+        Order order = orderRepository.findById(orderId)
+                .orElse(null);
+
+        if (order == null) return null;
+
+        boolean isOwner = order.getUser().getUserId().equals(user.getUserId());
+        boolean isAdmin = !user.getRole().name().equalsIgnoreCase("customer");
+
+        if (!isOwner && !isAdmin) {
+            throw new RuntimeException("Bạn không có quyền truy cập đơn hàng này");
+        }
+
+        OrderDTO dto = new OrderDTO();
+        dto.setOrderId(order.getOrderId());
+        dto.setUserName(order.getUser().getName());
+        dto.setStatus(order.getStatus().name());
+        dto.setPaymentMethod(order.getPaymentMethod().name());
+        dto.setTotalAmount(order.getTotalAmount());
+        dto.setPhoneNumber(order.getPhoneNumber());
+        dto.setAddress(order.getAddress());
+        dto.setCreatedAt(order.getCreatedAt());
+
+        List<OrderItemDTO> items = order.getOrderItems().stream().map(item -> {
+            OrderItemDTO itemDTO = new OrderItemDTO();
+            itemDTO.setProductName(item.getProduct().getName());
+            itemDTO.setQuantity(item.getQuantity());
+            itemDTO.setPriceAtTime(item.getPriceAtTime());
+            return itemDTO;
+        }).collect(Collectors.toList());
+
+        dto.setItems(items);
+        return dto;
+    }
+
 }

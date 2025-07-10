@@ -135,7 +135,8 @@ public class Order {
         pending,
         shipped,
         delivered,
-        cancelled
+        cancelled,
+        paid
     }
 
     public enum PaymentMethod {
