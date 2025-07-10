@@ -150,4 +150,17 @@ public class UserController {
         return userService.getUsersByRoles(User.Role.staff, User.Role.manager);
     }
 
+    @DeleteMapping("/{userId}")
+    @PreAuthorize("hasRole('ROLE_owner')") // chỉ owner được quyền
+    public ResponseEntity<String> deleteUser(@PathVariable Integer userId, Authentication authentication) {
+        String currentEmail = authentication.getName();
+
+        try {
+            userService.deleteUserById(userId, currentEmail);
+            return ResponseEntity.ok("✅ Xóa người dùng thành công");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("❌ " + e.getMessage());
+        }
+    }
+
 }
