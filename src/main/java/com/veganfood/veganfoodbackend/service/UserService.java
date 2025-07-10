@@ -79,5 +79,27 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
+    public void deleteUserById(Integer userId, String requestedByEmail) {
+        User requestedBy = userRepository.findByEmail(requestedByEmail)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người yêu cầu"));
+
+        if (requestedBy.getRole() != User.Role.owner) {
+            throw new RuntimeException("Chỉ owner mới có quyền xóa người dùng");
+        }
+
+        User userToDelete = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng cần xóa"));
+
+        if (userToDelete.getUserId().equals(requestedBy.getUserId())) {
+            throw new RuntimeException("Không thể tự xóa chính mình");
+        }
+
+        if (userToDelete.getRole() == User.Role.owner) {
+            throw new RuntimeException("Không thể xóa người dùng có vai trò owner");
+        }
+
+        userRepository.delete(userToDelete);
+    }
+
 
 }
