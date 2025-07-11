@@ -14,8 +14,9 @@ public class OrderDTO {
     private String address;
     private LocalDateTime createdAt;
     private List<OrderItemDTO> items;
+    private String discountCode;
+    private Integer discountPercentage;
 
-    // Getters & Setters
 
     public Integer getOrderId() {
         return orderId;
@@ -87,5 +88,21 @@ public class OrderDTO {
 
     public void setItems(List<OrderItemDTO> items) {
         this.items = items;
+    }
+
+    public String getDiscountCode() {
+        return discountCode;
+    }
+
+    public void setDiscountCode(String discountCode) {
+        this.discountCode = discountCode;
+    }
+
+    public Integer getDiscountPercentage() {
+        return discountPercentage;
+    }
+
+    public void setDiscountPercentage(Integer discountPercentage) {
+        this.discountPercentage = discountPercentage;
     }
 }

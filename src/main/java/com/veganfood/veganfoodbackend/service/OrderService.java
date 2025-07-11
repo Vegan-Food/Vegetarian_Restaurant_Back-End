@@ -35,7 +35,6 @@ public class OrderService {
         this.orderItemRepository = orderItemRepository;
     }
 
-    // ✅ API thanh toán (checkout)
     public String checkout(CheckoutRequest request, java.security.Principal principal) {
         String email = principal.getName();
         return checkoutByEmail(request, email);
@@ -63,7 +62,6 @@ public class OrderService {
         order.setPhoneNumber(request.getPhoneNumber());
         order.setAddress(request.getAddress());
 
-        // ✅ Áp dụng mã giảm giá nếu có
         if (request.getDiscountCode() != null && !request.getDiscountCode().isBlank()) {
             Discount discount = discountRepository.findByDiscountCode(request.getDiscountCode())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy mã giảm giá"));
@@ -87,7 +85,6 @@ public class OrderService {
             discountRepository.save(discount);
             order.setDiscount(discount);
         }
-
 
         order.setTotalAmount(totalAmount);
         orderRepository.save(order);
@@ -142,6 +139,12 @@ public class OrderService {
             dto.setAddress(order.getAddress());
             dto.setCreatedAt(order.getCreatedAt());
 
+            // ✅ Set discount info nếu có
+            if (order.getDiscount() != null) {
+                dto.setDiscountCode(order.getDiscount().getDiscountCode());
+                dto.setDiscountPercentage(order.getDiscount().getPercentage());
+            }
+
             List<OrderItemDTO> items = order.getOrderItems().stream().map(item -> {
                 OrderItemDTO itemDTO = new OrderItemDTO();
                 itemDTO.setProductName(item.getProduct().getName());
@@ -153,6 +156,50 @@ public class OrderService {
             dto.setItems(items);
             return dto;
         }).collect(Collectors.toList());
+    }
+
+    public OrderDTO getOrderByIdAndEmail(Integer orderId, String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+
+        Order order = orderRepository.findById(orderId)
+                .orElse(null);
+
+        if (order == null) return null;
+
+        boolean isOwner = order.getUser().getUserId().equals(user.getUserId());
+        boolean isAdmin = !user.getRole().name().equalsIgnoreCase("customer");
+
+        if (!isOwner && !isAdmin) {
+            throw new RuntimeException("Bạn không có quyền truy cập đơn hàng này");
+        }
+
+        OrderDTO dto = new OrderDTO();
+        dto.setOrderId(order.getOrderId());
+        dto.setUserName(order.getUser().getName());
+        dto.setStatus(order.getStatus().name());
+        dto.setPaymentMethod(order.getPaymentMethod().name());
+        dto.setTotalAmount(order.getTotalAmount());
+        dto.setPhoneNumber(order.getPhoneNumber());
+        dto.setAddress(order.getAddress());
+        dto.setCreatedAt(order.getCreatedAt());
+
+        // ✅ Set discount info nếu có
+        if (order.getDiscount() != null) {
+            dto.setDiscountCode(order.getDiscount().getDiscountCode());
+            dto.setDiscountPercentage(order.getDiscount().getPercentage());
+        }
+
+        List<OrderItemDTO> items = order.getOrderItems().stream().map(item -> {
+            OrderItemDTO itemDTO = new OrderItemDTO();
+            itemDTO.setProductName(item.getProduct().getName());
+            itemDTO.setQuantity(item.getQuantity());
+            itemDTO.setPriceAtTime(item.getPriceAtTime());
+            return itemDTO;
+        }).collect(Collectors.toList());
+
+        dto.setItems(items);
+        return dto;
     }
 
     public String deleteOrderById(Integer orderId, String email) {
@@ -195,43 +242,4 @@ public class OrderService {
 
         return "success";
     }
-
-    public OrderDTO getOrderByIdAndEmail(Integer orderId, String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
-
-        Order order = orderRepository.findById(orderId)
-                .orElse(null);
-
-        if (order == null) return null;
-
-        boolean isOwner = order.getUser().getUserId().equals(user.getUserId());
-        boolean isAdmin = !user.getRole().name().equalsIgnoreCase("customer");
-
-        if (!isOwner && !isAdmin) {
-            throw new RuntimeException("Bạn không có quyền truy cập đơn hàng này");
-        }
-
-        OrderDTO dto = new OrderDTO();
-        dto.setOrderId(order.getOrderId());
-        dto.setUserName(order.getUser().getName());
-        dto.setStatus(order.getStatus().name());
-        dto.setPaymentMethod(order.getPaymentMethod().name());
-        dto.setTotalAmount(order.getTotalAmount());
-        dto.setPhoneNumber(order.getPhoneNumber());
-        dto.setAddress(order.getAddress());
-        dto.setCreatedAt(order.getCreatedAt());
-
-        List<OrderItemDTO> items = order.getOrderItems().stream().map(item -> {
-            OrderItemDTO itemDTO = new OrderItemDTO();
-            itemDTO.setProductName(item.getProduct().getName());
-            itemDTO.setQuantity(item.getQuantity());
-            itemDTO.setPriceAtTime(item.getPriceAtTime());
-            return itemDTO;
-        }).collect(Collectors.toList());
-
-        dto.setItems(items);
-        return dto;
-    }
-
 }
