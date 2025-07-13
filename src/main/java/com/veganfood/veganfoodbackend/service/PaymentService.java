@@ -31,8 +31,8 @@ public class PaymentService {
     public String createPaymentLink(Integer orderId, BigDecimal totalAmount, String username) {
         int amount = totalAmount.intValue(); // Đơn vị VND
         String description = "Thanh toán VeganFood #" + orderId;
-        String returnUrl = "http://localhost:3000/billing";
-        String cancelUrl = "http://localhost:3000/";
+        String returnUrl = "http://localhost:3000/billing/" + orderId;
+        String cancelUrl = "http://localhost:3000";
 
         // ✅ Tạo chữ ký
         String signature = generateSignature(amount, cancelUrl, description, orderId, returnUrl);
