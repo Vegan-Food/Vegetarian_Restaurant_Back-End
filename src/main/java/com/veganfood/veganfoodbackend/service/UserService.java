@@ -101,5 +101,13 @@ public class UserService {
         userRepository.delete(userToDelete);
     }
 
+    public void deleteUserByEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản"));
+
+        userRepository.delete(user);
+    }
+
+
 
 }

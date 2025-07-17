@@ -163,4 +163,18 @@ public class UserController {
         }
     }
 
+    @DeleteMapping("/me")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<String> deleteMyAccount(Authentication authentication) {
+        String currentEmail = authentication.getName(); // lấy email từ JWT
+
+        try {
+            userService.deleteUserByEmail(currentEmail);
+            return ResponseEntity.ok("✅ Tài khoản của bạn đã được xóa thành công");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("❌ " + e.getMessage());
+        }
+    }
+
+
 }

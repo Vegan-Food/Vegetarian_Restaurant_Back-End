@@ -2,7 +2,10 @@ package com.veganfood.veganfoodbackend.service;
 
 import com.veganfood.veganfoodbackend.dto.ProductDTO;
 import com.veganfood.veganfoodbackend.model.Product;
+import com.veganfood.veganfoodbackend.repository.OrderItemRepository;
 import com.veganfood.veganfoodbackend.repository.ProductRepository;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -10,10 +13,13 @@ import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
-    private final ProductRepository productRepository;
 
-    public ProductService(ProductRepository productRepository) {
+    private final ProductRepository productRepository;
+    private final OrderItemRepository orderItemRepository;
+
+    public ProductService(ProductRepository productRepository, OrderItemRepository orderItemRepository) {
         this.productRepository = productRepository;
+        this.orderItemRepository = orderItemRepository;
     }
 
     // ✅ Lấy tất cả sản phẩm
@@ -61,4 +67,17 @@ public class ProductService {
     public void deleteProduct(Integer id) {
         productRepository.deleteById(id);
     }
+
+    // ✅ Đề xuất các sản phẩm đã order gần đây (4 món)
+    public List<Product> getRecentRecommendedProducts(Integer userId) {
+        Pageable limit = PageRequest.of(0, 4); // Lấy 4 món gần đây nhất
+        return orderItemRepository.findRecentProductsByUserId(userId, limit);
+    }
+
+    // ✅ Public API để gọi từ controller
+    public List<ProductDTO> getSuggestedProducts(Integer userId) {
+        List<Product> products = getRecentRecommendedProducts(userId);
+        return products.stream().map(ProductDTO::new).collect(Collectors.toList());
+    }
+
 }
