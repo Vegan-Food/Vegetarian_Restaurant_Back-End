@@ -36,6 +36,7 @@ public class SecurityConfig {
                                 "/api/feedback/product/**",
                                 "/api/auth/debug-password",
                                 "/api/products/**",
+                                "/api/order/top-products",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/swagger-ui/index.html",

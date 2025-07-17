@@ -2,9 +2,11 @@ package com.veganfood.veganfoodbackend.service;
 
 import com.veganfood.veganfoodbackend.dto.OrderDTO;
 import com.veganfood.veganfoodbackend.dto.OrderItemDTO;
+import com.veganfood.veganfoodbackend.dto.TopOrderedProductDTO;
 import com.veganfood.veganfoodbackend.dto.request.CheckoutRequest;
 import com.veganfood.veganfoodbackend.model.*;
 import com.veganfood.veganfoodbackend.repository.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -242,4 +244,10 @@ public class OrderService {
 
         return "success";
     }
+
+
+    public List<TopOrderedProductDTO> getTopOrderedProducts() {
+        return orderItemRepository.findTopOrderedProducts();
+    }
+
 }

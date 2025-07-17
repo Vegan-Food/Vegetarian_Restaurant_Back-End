@@ -1,13 +1,22 @@
 package com.veganfood.veganfoodbackend.controller;
 
 import com.veganfood.veganfoodbackend.dto.OrderDTO;
+import com.veganfood.veganfoodbackend.dto.ProductDTO;
+import com.veganfood.veganfoodbackend.dto.TopOrderedProductDTO;
 import com.veganfood.veganfoodbackend.dto.request.CheckoutRequest;
 import com.veganfood.veganfoodbackend.dto.request.UpdateOrderStatusRequest;
+import com.veganfood.veganfoodbackend.model.Product;
+import com.veganfood.veganfoodbackend.model.User;
 import com.veganfood.veganfoodbackend.service.OrderService;
+import com.veganfood.veganfoodbackend.service.ProductService;
+import com.veganfood.veganfoodbackend.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,6 +27,13 @@ public class OrderController {
 
     @Autowired
     private OrderService orderService;
+
+    @Autowired
+    private ProductService productService;
+
+    @Autowired
+    private UserService userService;
+
 
     // ✅ API thanh toán
     @PostMapping("/checkout")
@@ -69,4 +85,20 @@ public class OrderController {
         String email = authentication.getName();
         return ResponseEntity.ok(orderService.updateOrderStatus(orderId, request.getStatus(), email));
     }
+
+    @GetMapping("/top-products")
+    public ResponseEntity<List<TopOrderedProductDTO>> getTopOrderedProducts() {
+        return ResponseEntity.ok(orderService.getTopOrderedProducts());
+    }
+
+    // ✅ API: Đề xuất sản phẩm gần đây
+    @GetMapping("/suggested-products")
+    @PreAuthorize("isAuthenticated()")
+    public List<ProductDTO> getSuggestedProducts(Authentication authentication) {
+        String email = authentication.getName(); // Lấy email từ token
+        User user = userService.getUserByEmail(email); // Lấy user từ DB
+
+        return productService.getSuggestedProducts(user.getUserId());
+    }
+
 }
