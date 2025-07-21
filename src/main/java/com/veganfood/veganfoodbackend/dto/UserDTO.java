@@ -2,6 +2,7 @@ package com.veganfood.veganfoodbackend.dto;
 
 import com.veganfood.veganfoodbackend.model.User;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -15,6 +16,8 @@ public class UserDTO {
     private String address;
     private LocalDate dateOfBirth;
     private String gender;
+
+    private BigDecimal totalAmount; // ✅ Thêm dòng này
 
     public UserDTO() {
         // Bắt buộc để Jackson khởi tạo
@@ -42,4 +45,10 @@ public class UserDTO {
     public String getAddress() { return address; }
     public LocalDate getDateOfBirth() { return dateOfBirth; }
     public String getGender() { return gender; }
+    public BigDecimal getTotalAmount() { return totalAmount; } // ✅ Getter cho totalAmount
+
+    // Setter cho totalAmount
+    public void setTotalAmount(BigDecimal totalAmount) {
+        this.totalAmount = totalAmount;
+    }
 }

@@ -13,6 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -174,6 +175,14 @@ public class UserController {
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("❌ " + e.getMessage());
         }
+    }
+
+    @GetMapping("/total-spent")
+    @PreAuthorize("hasRole('ROLE_customer')")
+    public ResponseEntity<BigDecimal> getTotalSpent(Authentication authentication) {
+        String email = authentication.getName();
+        BigDecimal totalSpent = userService.getTotalSpentByEmail(email);
+        return ResponseEntity.ok(totalSpent);
     }
 
 

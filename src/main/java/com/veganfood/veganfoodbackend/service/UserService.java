@@ -3,10 +3,13 @@ package com.veganfood.veganfoodbackend.service;
 import com.veganfood.veganfoodbackend.dto.UserDTO;
 import com.veganfood.veganfoodbackend.model.User;
 import com.veganfood.veganfoodbackend.repository.UserRepository;
+import com.veganfood.veganfoodbackend.repository.OrderRepository;
+
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -14,10 +17,15 @@ import java.util.stream.Collectors;
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final OrderService orderService;
+    private final OrderRepository orderRepository;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder,
+                       OrderService orderService, OrderRepository orderRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.orderService = orderService;
+        this.orderRepository = orderRepository;
     }
 
     public List<UserDTO> getAllUsers() {
@@ -40,21 +48,15 @@ public class UserService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
     }
 
-    // 🆕 Kiểm tra email đã tồn tại
     public boolean isEmailExists(String email) {
         return userRepository.findByEmail(email).isPresent();
     }
 
-    // 🆕 Tạo tài khoản staff/manager
     public User createStaffManager(User user) {
-        // Mã hóa mật khẩu
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-
-        // Đảm bảo chỉ tạo được staff hoặc manager
         if (user.getRole() != User.Role.staff && user.getRole() != User.Role.manager) {
             throw new IllegalArgumentException("Chỉ có thể tạo tài khoản với role staff hoặc manager");
         }
-
         return userRepository.save(user);
     }
 
@@ -62,11 +64,17 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    // ✅ CHỈNH SỬA: Gán thêm totalAmount cho từng UserDTO
     public List<UserDTO> getUsersByRole(User.Role role) {
         return userRepository.findAll()
                 .stream()
                 .filter(user -> user.getRole() == role)
-                .map(UserDTO::new)
+                .map(user -> {
+                    UserDTO dto = new UserDTO(user);
+                    BigDecimal total = orderRepository.getTotalAmountByUserId(user.getUserId());
+                    dto.setTotalAmount(total != null ? total : BigDecimal.ZERO);
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -104,10 +112,10 @@ public class UserService {
     public void deleteUserByEmail(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản"));
-
         userRepository.delete(user);
     }
 
-
-
+    public BigDecimal getTotalSpentByEmail(String email) {
+        return orderService.getTotalSpentByUser(email);
+    }
 }
