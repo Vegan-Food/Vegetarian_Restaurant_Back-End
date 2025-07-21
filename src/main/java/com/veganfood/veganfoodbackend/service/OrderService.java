@@ -250,4 +250,16 @@ public class OrderService {
         return orderItemRepository.findTopOrderedProducts();
     }
 
+    public BigDecimal getTotalSpentByUser(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+
+        List<Order> orders = orderRepository.findByUser(user);
+
+        return orders.stream()
+                .map(Order::getTotalAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+
 }
