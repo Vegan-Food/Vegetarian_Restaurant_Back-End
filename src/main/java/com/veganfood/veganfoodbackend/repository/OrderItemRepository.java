@@ -14,21 +14,24 @@ import java.util.List;
 public interface OrderItemRepository extends JpaRepository<OrderItem, Integer> {
     List<OrderItem> findByOrderOrderId(Integer orderId);
 
-    // ✅ Thêm truy vấn tìm sản phẩm được đặt nhiều nhất
     @Query(value = """
     SELECT 
         p.product_id AS productId,
         p.name AS name,
         p.image_url AS imageUrl,
         p.category AS category,
+        p.description AS description,
+        p.price AS price,
         SUM(oi.quantity) AS totalOrdered
     FROM order_item oi
     JOIN product p ON oi.product_id = p.product_id
-    GROUP BY p.product_id, p.name, p.image_url, p.category
+    GROUP BY 
+        p.product_id, p.name, p.image_url, p.category, p.description, p.price
     ORDER BY totalOrdered DESC
-    LIMIT 5
+    LIMIT 8
     """, nativeQuery = true)
     List<TopOrderedProductDTO> findTopOrderedProducts();
+
 
     @Query("""
     SELECT oi.product 
