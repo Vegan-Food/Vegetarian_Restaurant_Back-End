@@ -5,5 +5,7 @@ public interface TopOrderedProductDTO {
     String getName();
     String getImageUrl();
     String getCategory();
-    Long getTotalOrdered(); // ← để khớp với SUM trong SQL
+    String getDescription();   // mới thêm
+    Double getPrice();         // mới thêm
+    Long getTotalOrdered();    // từ SUM(...)
 }
