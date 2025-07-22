@@ -20,7 +20,7 @@ public class SupportTicket {
     private String description;
 
     @Enumerated(EnumType.STRING)
-    private Status status = Status.open;
+    private Status status = Status.pending;
 
     @ManyToOne
     @JoinColumn(name = "assigned_to")
@@ -41,7 +41,7 @@ public class SupportTicket {
     private LocalDateTime repliedAt;
 
     public enum Status {
-        open, closed, pending
+        pending, paid, shipping, delivered, complete, cancelled
     }
 
     public Integer getTicketId() {

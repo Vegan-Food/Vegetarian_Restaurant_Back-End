@@ -30,7 +30,7 @@ public class SupportTicketService {
         ticket.setUser(user);
         ticket.setSubject(request.getSubject());
         ticket.setDescription(request.getDescription());
-        ticket.setStatus(SupportTicket.Status.open);
+        ticket.setStatus(SupportTicket.Status.pending);
         ticket.setCreatedAt(java.time.LocalDateTime.now());
 
         return ticketRepository.save(ticket);
