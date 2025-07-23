@@ -41,8 +41,9 @@ public class SupportTicket {
     private LocalDateTime repliedAt;
 
     public enum Status {
-        pending, paid, shipping, delivered, complete, cancelled
-    }
+        open,
+        pending,
+        closed    }
 
     public Integer getTicketId() {
         return ticketId;
