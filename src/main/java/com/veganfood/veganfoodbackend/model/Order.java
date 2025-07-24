@@ -132,9 +132,16 @@ public class Order {
     }
 
     public enum OrderStatus {
-        pending, paid, shipping, delivered, completed, cancelled
-
+        pending,
+        paid,
+        shipping,
+        shipped,
+        delivered,
+        completed,
+        cancelled
     }
+
+
 
     public enum PaymentMethod {
         VNPAY,

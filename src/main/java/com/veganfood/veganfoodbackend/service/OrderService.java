@@ -6,7 +6,6 @@ import com.veganfood.veganfoodbackend.dto.TopOrderedProductDTO;
 import com.veganfood.veganfoodbackend.dto.request.CheckoutRequest;
 import com.veganfood.veganfoodbackend.model.*;
 import com.veganfood.veganfoodbackend.repository.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -110,9 +109,7 @@ public class OrderService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
 
-        String role = user.getRole().name();
-
-        if ("customer".equalsIgnoreCase(role)) {
+        if ("customer".equalsIgnoreCase(user.getRole().name())) {
             return orderRepository.findByUser(user);
         } else {
             return orderRepository.findAll();
@@ -123,12 +120,9 @@ public class OrderService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
 
-        List<Order> orders;
-        if ("customer".equalsIgnoreCase(user.getRole().name())) {
-            orders = orderRepository.findByUser(user);
-        } else {
-            orders = orderRepository.findAll();
-        }
+        List<Order> orders = "customer".equalsIgnoreCase(user.getRole().name())
+                ? orderRepository.findByUser(user)
+                : orderRepository.findAll();
 
         return orders.stream().map(order -> {
             OrderDTO dto = new OrderDTO();
@@ -141,7 +135,6 @@ public class OrderService {
             dto.setAddress(order.getAddress());
             dto.setCreatedAt(order.getCreatedAt());
 
-            // ✅ Set discount info nếu có
             if (order.getDiscount() != null) {
                 dto.setDiscountCode(order.getDiscount().getDiscountCode());
                 dto.setDiscountPercentage(order.getDiscount().getPercentage());
@@ -164,9 +157,7 @@ public class OrderService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
 
-        Order order = orderRepository.findById(orderId)
-                .orElse(null);
-
+        Order order = orderRepository.findById(orderId).orElse(null);
         if (order == null) return null;
 
         boolean isOwner = order.getUser().getUserId().equals(user.getUserId());
@@ -186,7 +177,6 @@ public class OrderService {
         dto.setAddress(order.getAddress());
         dto.setCreatedAt(order.getCreatedAt());
 
-        // ✅ Set discount info nếu có
         if (order.getDiscount() != null) {
             dto.setDiscountCode(order.getDiscount().getDiscountCode());
             dto.setDiscountPercentage(order.getDiscount().getPercentage());
@@ -245,7 +235,6 @@ public class OrderService {
         return "success";
     }
 
-
     public List<TopOrderedProductDTO> getTopOrderedProducts() {
         return orderItemRepository.findTopOrderedProducts();
     }
@@ -260,6 +249,4 @@ public class OrderService {
                 .map(Order::getTotalAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
-
-
 }
