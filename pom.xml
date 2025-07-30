@@ -15,11 +15,12 @@
     <groupId>com.example</groupId>
     <artifactId>hellospring</artifactId>
     <version>0.0.1-SNAPSHOT</version>
+    <packaging>war</packaging>
     <name>hellospring</name>
     <description>Demo project for Spring Boot</description>
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>17</java.version>
     </properties>
 
     <repositories>
