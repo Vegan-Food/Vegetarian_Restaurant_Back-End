@@ -56,6 +56,11 @@ public class OrderService {
                         .multiply(BigDecimal.valueOf(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
+        // ➕ Thêm phí vận chuyển cố định 20k
+        BigDecimal shippingFee = BigDecimal.valueOf(20000);
+        totalAmount = totalAmount.add(shippingFee);
+
+
         Order order = new Order();
         order.setUser(user);
         order.setStatus(Order.OrderStatus.pending);
