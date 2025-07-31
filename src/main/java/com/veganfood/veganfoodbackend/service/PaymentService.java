@@ -37,8 +37,8 @@ public class PaymentService {
             String uniqueOrderCode = orderId + "" + (timestamp % 100000); // Lấy 5 số cuối của timestamp
 
             String description = "Thanh toán VeganFood #" + orderId;
-            String returnUrl = "http://localhost:3000/billing/" + orderId;
-            String cancelUrl = "http://localhost:3000";
+            String returnUrl = "https://veganfood-five.vercel.app/billing/" + orderId;
+            String cancelUrl = "https://veganfood-five.vercel.app";
 
             // ✅ Tạo chữ ký với orderCode unique
             String signature = generateSignature(amount, cancelUrl, description, uniqueOrderCode, returnUrl);
