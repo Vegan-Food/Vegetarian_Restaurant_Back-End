@@ -9,7 +9,7 @@ import java.util.List;
 public interface FeedbackRepository extends JpaRepository<Feedback, Integer> {
 
     // ✅ Sử dụng native query để tránh mapping issues
-    @Query(value = "SELECT * FROM Feedback WHERE product_id = :productId", nativeQuery = true)
+    @Query(value = "SELECT * FROM feedback WHERE product_id = :productId", nativeQuery = true)
     List<Feedback> findByProductId(@Param("productId") Integer productId);
 
     // ✅ Hoặc dùng method naming convention (Spring tự generate query)
